@@ -95,14 +95,14 @@ slides.forEach((slide)=>{const mapButton=slide.querySelector('.region-map-trigge
 slides.forEach((s,i)=>{const b=document.createElement('button');b.className='dot'+(i===0?' active':'');b.title=s.dataset.title;b.setAttribute('aria-label',`Слайд ${i+1}: ${s.dataset.title}`);b.setAttribute('aria-current',i===0?'step':'false');b.onclick=()=>goTo(i);dots.appendChild(b)});updateNavigation();
 let mapReturnFocus=null,selectedPlaceKey='kalmykia';
 const mapLocations={
- moscow:{label:'Москва',note:'Красная площадь зимой · Vyacheslav Argenberg · CC BY 4.0',lat:55.7558,lon:37.6173,kind:'city',image:'images/moscow-red-square-winter.jpg',alt:'Заснеженная Красная площадь и собор Василия Блаженного'},
- nizhny:{label:'Нижний Новгород',note:'Кремль во время снегопада · Алексей Трефилов · CC BY-SA 4.0',lat:56.2965,lon:43.9361,kind:'city',image:'images/nizhny-novgorod-kremlin-snow.jpg',alt:'Снегопад у Нижегородского кремля'},
- petersburg:{label:'Санкт-Петербург',note:'Дворцовая площадь зимой · Anna Bogatova / Pexels',lat:59.9311,lon:30.3609,kind:'city',image:'images/saint-petersburg-palace-square-winter.jpg',alt:'Заснеженная Дворцовая площадь и Александровская колонна'},
- kazan:{label:'Казань',note:'Татарстан · Поволжье',lat:55.7961,lon:49.1064,kind:'city'},
- yakutsk:{label:'Якутск',note:'Республика Саха (Якутия)',lat:62.0355,lon:129.6755,kind:'city'},
- ulanude:{label:'Улан-Удэ',note:'Бурятия · у Байкала',lat:51.8335,lon:107.5841,kind:'city'},
- novosibirsk:{label:'Новосибирск',note:'Западная Сибирь',lat:55.0084,lon:82.9357,kind:'city'},
- vladivostok:{label:'Владивосток',note:'Дальний Восток',lat:43.1155,lon:131.8855,kind:'city'},
+ moscow:{label:'Москва',note:'Красная площадь зимой',lat:55.7558,lon:37.6173,kind:'city',image:'images/globe-moscow-storybook.jpg',alt:'Сказочная зимняя Красная площадь с собором Василия Блаженного и праздничной ёлкой'},
+ nizhny:{label:'Нижний Новгород',note:'Кремль и зимняя панорама Волги',lat:56.2965,lon:43.9361,kind:'city',image:'images/globe-nizhny-storybook.jpg',alt:'Сказочная зимняя панорама Нижегородского Кремля над Волгой'},
+ petersburg:{label:'Санкт-Петербург',note:'Дворцовая площадь и Эрмитаж зимой',lat:59.9311,lon:30.3609,kind:'city',image:'images/globe-petersburg-storybook.jpg',alt:'Сказочная зимняя Дворцовая площадь с Эрмитажем и Александровской колонной'},
+ kazan:{label:'Казань',note:'Казанский Кремль и мечеть Кул-Шариф',lat:55.7961,lon:49.1064,kind:'city',image:'images/globe-kazan-storybook.jpg',alt:'Сказочная зимняя Казань с мечетью Кул-Шариф и кремлёвскими стенами'},
+ yakutsk:{label:'Якутск',note:'Зимняя столица Республики Саха',lat:62.0355,lon:129.6755,kind:'city',image:'images/globe-yakutsk-storybook.jpg',alt:'Сказочный новогодний Якутск с ледяными скульптурами и северными огнями'},
+ ulanude:{label:'Улан-Удэ',note:'Бурятия · площадь Советов',lat:51.8335,lon:107.5841,kind:'city',image:'images/globe-ulan-ude-storybook.jpg',alt:'Сказочная зимняя площадь Улан-Удэ с памятником Ленину и буддийским дацаном'},
+ novosibirsk:{label:'Новосибирск',note:'Оперный театр и зимний город',lat:55.0084,lon:82.9357,kind:'city',image:'images/globe-novosibirsk-storybook.jpg',alt:'Сказочная новогодняя панорама Новосибирска с Оперным театром'},
+ vladivostok:{label:'Владивосток',note:'Золотой мост и бухта Золотой Рог',lat:43.1155,lon:131.8855,kind:'city',image:'images/globe-vladivostok-storybook.jpg',alt:'Сказочный зимний Владивосток с Золотым мостом и праздничной ёлкой у бухты'},
  kalmykia:{label:'Калмыкия',note:'Юг европейской части России',lat:46.3078,lon:44.2558,kind:'region'},
  tuva:{label:'Тыва',note:'Юг Сибири',lat:51.7191,lon:94.4378,kind:'region'},
  altai:{label:'Алтай',note:'Юг Сибири',lat:51.9581,lon:85.9603,kind:'region'},
