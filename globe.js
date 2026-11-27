@@ -179,13 +179,16 @@ function initGlobe(stage) {
   return {
     focus(key) {
       if (!places[key]) return;
-      if (!markers.has(key)) addPlace(key);
-      for (const [placeKey, marker] of markers) {
-        marker.material.color.set(placeKey === key ? 0xffde85 : 0xffffff);
-        marker.scale.setScalar(placeKey === key ? 1.5 : 1);
-        labels.get(placeKey)?.classList.toggle('is-selected', placeKey === key);
-      }
       const place = places[key];
+      const focusedPlaces = place.group || [key];
+      focusedPlaces.forEach((placeKey) => { if (!markers.has(placeKey)) addPlace(placeKey); });
+      if (!place.group && !markers.has(key)) addPlace(key);
+      for (const [placeKey, marker] of markers) {
+        const selected = placeKey === key || focusedPlaces.includes(placeKey);
+        marker.material.color.set(selected ? 0xffde85 : 0xffffff);
+        marker.scale.setScalar(placeKey === key ? 1.5 : 1);
+        labels.get(placeKey)?.classList.toggle('is-selected', selected);
+      }
       // Rotate the selected longitude to the front without changing the drag controls.
       const targetYaw = THREE.MathUtils.degToRad(-90 - place.lon);
       earthGroup.rotation.y = targetYaw;
