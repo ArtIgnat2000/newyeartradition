@@ -49,6 +49,8 @@ function initGlobe(stage) {
 
   const labels = new Map();
   const markers = new Map();
+  const markerRaycaster = new THREE.Raycaster();
+  const markerPointer = new THREE.Vector2();
   function addPlace(key) {
     const place = places[key];
     if (!place || markers.has(key)) return;
@@ -96,6 +98,8 @@ function initGlobe(stage) {
   let dragging = false;
   let previousX = 0;
   let previousY = 0;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
   let resumeSpinAt = 0;
   let active = true;
   const pointerDown = (event) => {
@@ -103,6 +107,8 @@ function initGlobe(stage) {
     dragging = true;
     previousX = event.clientX;
     previousY = event.clientY;
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
     resumeSpinAt = performance.now() + 5000;
     renderer.domElement.setPointerCapture?.(event.pointerId);
   };
@@ -117,7 +123,22 @@ function initGlobe(stage) {
     earthGroup.rotation.x = THREE.MathUtils.clamp(earthGroup.rotation.x + dy * 0.004, -1.25, 1.25);
     resumeSpinAt = performance.now() + 5000;
   });
-  renderer.domElement.addEventListener('pointerup', () => { dragging = false; });
+  renderer.domElement.addEventListener('pointerup', (event) => {
+    if (!dragging) return;
+    dragging = false;
+    if (Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY) > 6) return;
+
+    const bounds = renderer.domElement.getBoundingClientRect();
+    markerPointer.set(
+      ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+      -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
+    );
+    markerRaycaster.setFromCamera(markerPointer, camera);
+    scene.updateMatrixWorld(true);
+    const hit = markerRaycaster.intersectObjects([...markers.values()], false)[0];
+    const place = hit && places[hit.object.userData.placeKey];
+    if (place?.image) window.openCityPreview?.(place.image, place.alt || place.label, `${place.label} · ${place.note}`);
+  });
   renderer.domElement.addEventListener('pointercancel', () => { dragging = false; });
   renderer.domElement.addEventListener('wheel', (event) => {
     event.preventDefault();
