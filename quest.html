@@ -45,6 +45,20 @@
 .tatarstan-stage:after{display:none}
 .slide:not(.city-slide) .image-caption{position:absolute;z-index:10;right:0;bottom:0;left:0;display:block!important;width:auto;padding:48px 20px 17px;background:linear-gradient(transparent,#101820d9);color:#fff;text-align:left;font-size:clamp(18px,2.2vw,25px);font-weight:750;line-height:1.2;text-shadow:0 2px 12px #000;pointer-events:none}
 @media(max-width:600px){.slide:not(.city-slide) .image-caption{padding:38px 14px 13px;font-size:18px}}
+
+/* Keep the lunar-calendar and finale slides within the viewport, clear of the fixed controls. */
+.slide.active[data-title="Новый год по лунному календарю"]>:not(.slide-actions),
+.slide.active[data-title="Новый год объединяет"]>:not(.slide-actions){width:min(100%,82vh)}
+.slide.active[data-title="Новый год по лунному календарю"] .regional-newyear-heading h2,
+.slide.active[data-title="Новый год объединяет"] h2{font-size:clamp(34px,4.4vw,56px)}
+.slide.active[data-title="Новый год по лунному календарю"] .lunar-layout .region-preview{width:100%;height:auto;aspect-ratio:16/9}
+.slide.active[data-title="Новый год объединяет"]>.final-image{width:min(100%,82vh);height:auto;aspect-ratio:16/9}
+.slide.active[data-title="Новый год по лунному календарю"] .lunar-layout .region-preview{margin:0;align-self:flex-start}
+.slide.active[data-title="Новый год объединяет"]>.final-image{margin:12px auto 0}
+main:has(.slide.active[data-title="Новый год по лунному календарю"]),
+main:has(.slide.active[data-title="Новый год объединяет"]){scrollbar-width:none}
+main:has(.slide.active[data-title="Новый год по лунному календарю"])::-webkit-scrollbar,
+main:has(.slide.active[data-title="Новый год объединяет"])::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
