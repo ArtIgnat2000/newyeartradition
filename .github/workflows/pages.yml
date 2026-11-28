@@ -10,7 +10,8 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  # Queue deployments instead of cancelling one while Pages is publishing it.
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -32,6 +33,33 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: .
+      # Pages artifact metadata can briefly lag behind a successful upload.
+      # Wait until the artifact is visible to the deployment API before deploying.
+      - name: Wait for Pages artifact to become available
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const attempts = 12;
+            for (let attempt = 1; attempt <= attempts; attempt++) {
+              try {
+                const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: context.runId,
+                  per_page: 100,
+                });
+                const artifact = data.artifacts.find(item => item.name === 'github-pages' && !item.expired);
+                if (artifact) {
+                  core.info(`Pages artifact is available (${artifact.size_in_bytes} bytes).`);
+                  return;
+                }
+                core.info(`Pages artifact not visible yet (attempt ${attempt}/${attempts}).`);
+              } catch (error) {
+                core.warning(`Artifact lookup failed on attempt ${attempt}/${attempts}: ${error.message}`);
+              }
+              if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+            core.setFailed('The github-pages artifact was uploaded but did not become visible to the Pages deployment API after 60 seconds.');
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
