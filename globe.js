@@ -1,12 +1,14 @@
-import * as THREE from './vendor/three.module.js';
+import * as THREE from "./vendor/three.module.js";
 
-const places = window.mapLocations || {};
-const CITY_KEYS = Object.keys(places).filter((key) => places[key].kind === 'city');
+import { mapLocations as places } from "./deck-data.js";
+const CITY_KEYS = Object.keys(places).filter(
+  (key) => places[key].kind === "city",
+);
 const instances = new Map();
 
 function globePosition(latitude, longitude, radius = 1) {
-  const phi = (longitude + 180) * Math.PI / 180;
-  const theta = (90 - latitude) * Math.PI / 180;
+  const phi = ((longitude + 180) * Math.PI) / 180;
+  const theta = ((90 - latitude) * Math.PI) / 180;
   return new THREE.Vector3(
     -Math.cos(phi) * Math.sin(theta) * radius,
     Math.cos(theta) * radius,
@@ -15,13 +17,17 @@ function globePosition(latitude, longitude, radius = 1) {
 }
 
 function initGlobe(stage) {
-  const canvasHost = stage.querySelector('.globe-canvas');
-  const labelsHost = stage.querySelector('.globe-labels');
+  const canvasHost = stage.querySelector(".globe-canvas");
+  const labelsHost = stage.querySelector(".globe-labels");
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
   camera.position.set(0, 0, 3.15);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: "low-power",
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   canvasHost.appendChild(renderer.domElement);
 
@@ -38,12 +44,23 @@ function initGlobe(stage) {
   earthGroup.rotation.set(0.98, THREE.MathUtils.degToRad(170), 0);
   scene.add(earthGroup);
   const sphereGeometry = new THREE.SphereGeometry(1, 96, 72);
-  const earthMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, map: null });
+  const earthMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.95,
+    metalness: 0,
+    map: null,
+  });
   const earth = new THREE.Mesh(sphereGeometry, earthMaterial);
   earthGroup.add(earth);
   const atmosphere = new THREE.Mesh(
     new THREE.SphereGeometry(1.035, 64, 48),
-    new THREE.MeshBasicMaterial({ color: 0x6ebcff, transparent: true, opacity: 0.12, side: THREE.BackSide, depthWrite: false }),
+    new THREE.MeshBasicMaterial({
+      color: 0x6ebcff,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
   );
   earthGroup.add(atmosphere);
 
@@ -57,42 +74,62 @@ function initGlobe(stage) {
     const selected = key === stage.dataset.focus;
     const marker = new THREE.Mesh(
       new THREE.SphereGeometry(selected ? 0.018 : 0.012, 16, 12),
-      new THREE.MeshBasicMaterial({ color: selected ? 0xffde85 : 0xffffff, depthTest: true }),
+      new THREE.MeshBasicMaterial({
+        color: selected ? 0xffde85 : 0xffffff,
+        depthTest: true,
+      }),
     );
     marker.position.copy(globePosition(place.lat, place.lon, 1.012));
     marker.userData.placeKey = key;
     earthGroup.add(marker);
     markers.set(key, marker);
 
-    const label = document.createElement('button');
-    label.type = 'button';
-    label.className = 'globe-city-label';
+    const label = document.createElement("button");
+    label.type = "button";
+    label.className = "globe-city-label";
     label.dataset.key = key;
     label.textContent = place.label;
-    label.setAttribute('aria-label', `${place.label}: открыть изображение города`);
+    label.setAttribute(
+      "aria-label",
+      `${place.label}: открыть изображение города`,
+    );
     label.title = place.note;
-    label.addEventListener('click', (event) => {
+    label.addEventListener("click", (event) => {
       event.stopPropagation();
-      if (place.image) window.openCityPreview?.(place.image, place.alt || place.label, `${place.label} · ${place.note}`);
+      if (place.image)
+        window.openCityPreview?.(
+          place.image,
+          place.alt || place.label,
+          `${place.label} · ${place.note}`,
+        );
       else if (window.openRegionMap) window.openRegionMap(key);
     });
     labelsHost.appendChild(label);
     labels.set(key, label);
   }
   CITY_KEYS.forEach(addPlace);
-  if (stage.dataset.focus && places[stage.dataset.focus]?.kind === 'region') addPlace(stage.dataset.focus);
+  if (stage.dataset.focus && places[stage.dataset.focus]?.kind === "region")
+    addPlace(stage.dataset.focus);
 
   const textureLoader = new THREE.TextureLoader();
-  textureLoader.load('images/earth-blue-marble.jpg', (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-    earthMaterial.map = texture;
-    earthMaterial.needsUpdate = true;
-    stage.classList.add('ready');
-  }, undefined, () => {
-    const status = stage.querySelector('.globe-status');
-    status.textContent = 'Не удалось загрузить текстуру глобуса';
-  });
+  textureLoader.load(
+    "images/earth-blue-marble.jpg",
+    (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(
+        renderer.capabilities.getMaxAnisotropy(),
+        8,
+      );
+      earthMaterial.map = texture;
+      earthMaterial.needsUpdate = true;
+      stage.classList.add("ready");
+    },
+    undefined,
+    () => {
+      const status = stage.querySelector(".globe-status");
+      status.textContent = "Не удалось загрузить текстуру глобуса";
+    },
+  );
 
   let radius = 3.15;
   let dragging = false;
@@ -101,9 +138,12 @@ function initGlobe(stage) {
   let pointerStartX = 0;
   let pointerStartY = 0;
   let resumeSpinAt = 0;
-  let active = true;
+  let active = false;
+  let disposed = false;
+  let animationFrame = 0;
+  let stageIntersectsViewport = stage.getClientRects().length > 0;
   const pointerDown = (event) => {
-    if (event.target.closest('.globe-controls,.globe-city-label')) return;
+    if (event.target.closest(".globe-controls,.globe-city-label")) return;
     dragging = true;
     previousX = event.clientX;
     previousY = event.clientY;
@@ -112,21 +152,29 @@ function initGlobe(stage) {
     resumeSpinAt = performance.now() + 5000;
     renderer.domElement.setPointerCapture?.(event.pointerId);
   };
-  renderer.domElement.addEventListener('pointerdown', pointerDown);
-  renderer.domElement.addEventListener('pointermove', (event) => {
+  renderer.domElement.addEventListener("pointerdown", pointerDown);
+  renderer.domElement.addEventListener("pointermove", (event) => {
     if (!dragging) return;
     const dx = event.clientX - previousX;
     const dy = event.clientY - previousY;
     previousX = event.clientX;
     previousY = event.clientY;
     earthGroup.rotation.y += dx * 0.006;
-    earthGroup.rotation.x = THREE.MathUtils.clamp(earthGroup.rotation.x + dy * 0.004, -1.25, 1.25);
+    earthGroup.rotation.x = THREE.MathUtils.clamp(
+      earthGroup.rotation.x + dy * 0.004,
+      -1.25,
+      1.25,
+    );
     resumeSpinAt = performance.now() + 5000;
   });
-  renderer.domElement.addEventListener('pointerup', (event) => {
+  renderer.domElement.addEventListener("pointerup", (event) => {
     if (!dragging) return;
     dragging = false;
-    if (Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY) > 6) return;
+    if (
+      Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY) >
+      6
+    )
+      return;
 
     const bounds = renderer.domElement.getBoundingClientRect();
     markerPointer.set(
@@ -135,25 +183,39 @@ function initGlobe(stage) {
     );
     markerRaycaster.setFromCamera(markerPointer, camera);
     scene.updateMatrixWorld(true);
-    const hit = markerRaycaster.intersectObjects([...markers.values()], false)[0];
+    const hit = markerRaycaster.intersectObjects(
+      [...markers.values()],
+      false,
+    )[0];
     const place = hit && places[hit.object.userData.placeKey];
-    if (place?.image) window.openCityPreview?.(place.image, place.alt || place.label, `${place.label} · ${place.note}`);
+    if (place?.image)
+      window.openCityPreview?.(
+        place.image,
+        place.alt || place.label,
+        `${place.label} · ${place.note}`,
+      );
   });
-  renderer.domElement.addEventListener('pointercancel', () => { dragging = false; });
-  renderer.domElement.addEventListener('wheel', (event) => {
-    event.preventDefault();
-    radius = THREE.MathUtils.clamp(radius + event.deltaY * 0.002, 2.15, 5.5);
-    camera.position.z = radius;
-    resumeSpinAt = performance.now() + 3500;
-  }, { passive: false });
+  renderer.domElement.addEventListener("pointercancel", () => {
+    dragging = false;
+  });
+  renderer.domElement.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      radius = THREE.MathUtils.clamp(radius + event.deltaY * 0.002, 2.15, 5.5);
+      camera.position.z = radius;
+      resumeSpinAt = performance.now() + 3500;
+    },
+    { passive: false },
+  );
 
-  stage.querySelectorAll('[data-globe-action]').forEach((button) => {
-    button.addEventListener('pointerdown', (event) => event.stopPropagation());
-    button.addEventListener('click', () => {
+  stage.querySelectorAll("[data-globe-action]").forEach((button) => {
+    button.addEventListener("pointerdown", (event) => event.stopPropagation());
+    button.addEventListener("click", () => {
       const action = button.dataset.globeAction;
-      if (action === 'zoom-in') radius = Math.max(2.15, radius - 0.28);
-      if (action === 'zoom-out') radius = Math.min(5.5, radius + 0.28);
-      if (action === 'reset') {
+      if (action === "zoom-in") radius = Math.max(2.15, radius - 0.28);
+      if (action === "zoom-out") radius = Math.min(5.5, radius + 0.28);
+      if (action === "reset") {
         radius = 3.15;
         earthGroup.rotation.set(0.98, THREE.MathUtils.degToRad(170), 0);
       }
@@ -175,11 +237,29 @@ function initGlobe(stage) {
 
   const projected = new THREE.Vector3();
   const viewed = new THREE.Vector3();
+
+  function stopRendering() {
+    if (!animationFrame) return;
+    cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
+  }
+
+  function scheduleRender() {
+    if (
+      !active ||
+      disposed ||
+      document.hidden ||
+      !stageIntersectsViewport ||
+      animationFrame
+    )
+      return;
+    animationFrame = requestAnimationFrame(render);
+  }
+
   function render(now) {
-    if (!active) return;
-    const dialogOpen = stage.closest('.globe-modal')?.classList.contains('open');
-    const slideActive = stage.closest('.slide')?.classList.contains('active');
-    if (document.hidden || (!dialogOpen && !slideActive)) { requestAnimationFrame(render); return; }
+    animationFrame = 0;
+    if (!active || disposed || document.hidden || !stageIntersectsViewport)
+      return;
     if (!dragging && now > resumeSpinAt) earthGroup.rotation.y += 0.001;
     renderer.render(scene, camera);
     for (const [key, marker] of markers) {
@@ -187,28 +267,63 @@ function initGlobe(stage) {
       marker.getWorldPosition(projected);
       viewed.copy(projected).applyMatrix4(camera.matrixWorldInverse);
       projected.project(camera);
-      const visible = viewed.z < -0.015 && projected.z < 1 && Math.abs(projected.x) < 1.15 && Math.abs(projected.y) < 1.15;
+      const visible =
+        viewed.z < -0.015 &&
+        projected.z < 1 &&
+        Math.abs(projected.x) < 1.15 &&
+        Math.abs(projected.y) < 1.15;
       label.hidden = !visible;
       if (visible) {
         label.style.left = `${(projected.x * 0.5 + 0.5) * stage.clientWidth}px`;
         label.style.top = `${(-projected.y * 0.5 + 0.5) * stage.clientHeight}px`;
       }
     }
-    requestAnimationFrame(render);
+    scheduleRender();
   }
-  requestAnimationFrame(render);
+
+  const visibilityObserver =
+    "IntersectionObserver" in window
+      ? new IntersectionObserver(([entry]) => {
+          stageIntersectsViewport = entry.isIntersecting;
+          if (stageIntersectsViewport) scheduleRender();
+          else stopRendering();
+        })
+      : null;
+  const handleDocumentVisibility = () => {
+    if (document.hidden) stopRendering();
+    else scheduleRender();
+  };
+  visibilityObserver?.observe(stage);
+  document.addEventListener("visibilitychange", handleDocumentVisibility);
+  if (!visibilityObserver) {
+    window.addEventListener("scroll", scheduleRender, { passive: true });
+    document
+      .getElementById("deck")
+      ?.addEventListener("scroll", scheduleRender, { passive: true });
+  }
   return {
+    setActive(value) {
+      active = Boolean(value);
+      if (active) {
+        if (!visibilityObserver)
+          stageIntersectsViewport = stage.getClientRects().length > 0;
+        resize();
+        scheduleRender();
+      } else stopRendering();
+    },
     focus(key) {
       if (!places[key]) return;
       const place = places[key];
       const focusedPlaces = place.group || [key];
-      focusedPlaces.forEach((placeKey) => { if (!markers.has(placeKey)) addPlace(placeKey); });
+      focusedPlaces.forEach((placeKey) => {
+        if (!markers.has(placeKey)) addPlace(placeKey);
+      });
       if (!place.group && !markers.has(key)) addPlace(key);
       for (const [placeKey, marker] of markers) {
         const selected = placeKey === key || focusedPlaces.includes(placeKey);
         marker.material.color.set(selected ? 0xffde85 : 0xffffff);
         marker.scale.setScalar(placeKey === key ? 1.5 : 1);
-        labels.get(placeKey)?.classList.toggle('is-selected', selected);
+        labels.get(placeKey)?.classList.toggle("is-selected", selected);
       }
       // Rotate the selected longitude to the front without changing the drag controls.
       const targetYaw = THREE.MathUtils.degToRad(-90 - place.lon);
@@ -218,22 +333,55 @@ function initGlobe(stage) {
       resumeSpinAt = performance.now() + 6000;
     },
     resize,
-    destroy() { active = false; resizeObserver.disconnect(); renderer.dispose(); },
+    destroy() {
+      disposed = true;
+      active = false;
+      stopRendering();
+      resizeObserver.disconnect();
+      visibilityObserver?.disconnect();
+      document.removeEventListener(
+        "visibilitychange",
+        handleDocumentVisibility,
+      );
+      if (!visibilityObserver) {
+        window.removeEventListener("scroll", scheduleRender);
+        document
+          .getElementById("deck")
+          ?.removeEventListener("scroll", scheduleRender);
+      }
+      scene.traverse((object) => {
+        object.geometry?.dispose();
+        const materials = Array.isArray(object.material)
+          ? object.material
+          : object.material
+            ? [object.material]
+            : [];
+        materials.forEach((material) => {
+          material.map?.dispose();
+          material.dispose();
+        });
+      });
+      renderer.dispose();
+      renderer.domElement.remove();
+    },
   };
 }
 
-function makeInstances() {
-  document.querySelectorAll('.globe-stage').forEach((stage) => {
-    if (instances.has(stage.dataset.globe)) return;
-    try {
-      instances.set(stage.dataset.globe, initGlobe(stage));
-    } catch (error) {
-      stage.querySelector('.globe-status').textContent = 'Для интерактивного глобуса нужен WebGL';
-      console.error('Could not initialize Earth globe', error);
-    }
-  });
-}
+export function mountGlobe(name = "main") {
+  if (instances.has(name)) return instances.get(name);
+  const stage = [...document.querySelectorAll(".globe-stage")].find(
+    (candidate) => candidate.dataset.globe === name,
+  );
+  if (!stage) return null;
 
-makeInstances();
-window.focusGlobePlace = (key, name = 'modal') => instances.get(name)?.focus(key);
-window.resizeGlobe = (name) => instances.get(name)?.resize();
+  try {
+    const instance = initGlobe(stage);
+    instances.set(name, instance);
+    return instance;
+  } catch (error) {
+    const status = stage.querySelector(".globe-status");
+    if (status) status.textContent = "Для интерактивного глобуса нужен WebGL";
+    console.error("Could not initialize Earth globe", error);
+    return null;
+  }
+}
