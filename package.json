@@ -1,0 +1,13 @@
+{
+  "name": "newyeartradition-presentation",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "prettier": "^3.10.1"
+  },
+  "type": "module"
+}
