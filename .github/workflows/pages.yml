@@ -29,7 +29,9 @@ jobs:
         uses: actions/checkout@v7
       - name: Configure Pages
         uses: actions/configure-pages@v6
+      # Pages artifacts are immutable: a rerun must reuse the first upload, not create a duplicate.
       - name: Upload site artifact
+        if: ${{ github.run_attempt == 1 }}
         uses: actions/upload-pages-artifact@v5
         with:
           path: .
@@ -48,9 +50,13 @@ jobs:
                   run_id: context.runId,
                   per_page: 100,
                 });
-                const artifact = data.artifacts.find(item => item.name === 'github-pages' && !item.expired);
-                if (artifact) {
-                  core.info(`Pages artifact is available (${artifact.size_in_bytes} bytes).`);
+                const artifacts = data.artifacts.filter(item => item.name === 'github-pages' && !item.expired);
+                if (artifacts.length > 1) {
+                  core.setFailed(`Found ${artifacts.length} github-pages artifacts; deployment requires exactly one.`);
+                  return;
+                }
+                if (artifacts.length === 1) {
+                  core.info(`Pages artifact is available (${artifacts[0].size_in_bytes} bytes).`);
                   return;
                 }
                 core.info(`Pages artifact not visible yet (attempt ${attempt}/${attempts}).`);
